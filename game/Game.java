@@ -95,6 +95,7 @@ public class Game extends JPanel implements MouseListener {
 		frame.setSize(310, 275);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
+		frame.setResizable(false);
 		this.setFocusable(true);
 		this.requestFocus();
 		System.out.println(board[0][0]);
@@ -341,11 +342,16 @@ public class Game extends JPanel implements MouseListener {
 				nextLevel();
 			} else if(click.y  == 2) {
 				if(fastFoward == false) {
+					ff = new ImageIcon("highlighted_fastFoward.png");
 					fastFoward = true;
 				} else {
+					ff = new ImageIcon("fastfoward.png");
 					fastFoward = false;
+					
 				}
+				ff.setImage(ff.getImage().getScaledInstance((int) 50, 50, Image.SCALE_DEFAULT));
 			}
+			repaint();
 			return;
 		}
 
