@@ -33,8 +33,11 @@ public class Game extends JPanel implements MouseListener {
 	ImageIcon skip;
 	ImageIcon background = new ImageIcon("background.jpg");
 	ImageIcon ff = new ImageIcon("fastfoward.png");
+	ImageIcon settings;
+	ImageIcon back = new ImageIcon("back.png");
 
 	boolean levelSelect = false;
+	boolean settingsMenu = false;
 
 	public static void main(String[] args) {
 		Game g = new Game();
@@ -88,6 +91,11 @@ public class Game extends JPanel implements MouseListener {
 		background.setImage(background.getImage().getScaledInstance(400, 400, Image.SCALE_DEFAULT));
 
 		ff.setImage(ff.getImage().getScaledInstance((int) 50, 50, Image.SCALE_DEFAULT));
+
+		settings = new ImageIcon("settings.png");
+		settings.setImage(settings.getImage().getScaledInstance(50, 50, Image.SCALE_DEFAULT));
+		
+		back.setImage(back.getImage().getScaledInstance(50, 50, Image.SCALE_DEFAULT));
 
 		System.out.println(tiles.get(0));
 
@@ -181,7 +189,7 @@ public class Game extends JPanel implements MouseListener {
 	@Override
 	public void paintComponent(Graphics g) {
 
-		if(!levelSelect) {
+		if(!levelSelect && !settingsMenu) {
 			g.drawImage(background.getImage(), 0, 0, this);
 			for(int i = 0; i < board.length; i++) {
 				for(int j = 0; j < board[i].length; j++) {
@@ -189,15 +197,24 @@ public class Game extends JPanel implements MouseListener {
 				}
 			}
 			g.setColor(Color.BLACK);
-			g.drawString(Integer.toString(score), 280, 0);
+			g.drawString(Integer.toString(score), 255, 170);
 
 			g.drawImage(restart.getImage(), 250, 0, this);
 			g.drawImage(skip.getImage(), 250, 52, this);
 			g.drawImage(ff.getImage(), 250, 104, this);
-		} else {
+			g.drawImage(settings.getImage(), 250, 206, this);
+		} else if(settingsMenu){
+			
+			g.drawImage(background.getImage(), 0, 0, this);
+			g.drawImage(back.getImage(), 0, 0, this);
+			
+		} else if(levelSelect){
 			for(int i = 0; i < numLevels - 1; i++) {
 
 			}
+		} else {
+			g.drawImage(background.getImage(), 0, 0, this);
+			g.drawImage(back.getImage(), 0, 0, this);
 		}
 	}
 
@@ -243,7 +260,7 @@ public class Game extends JPanel implements MouseListener {
 	}
 
 	public void nextLevel() {
-		//score += level;
+		score += level;
 		level++;
 
 		if(level == 2) {
@@ -294,11 +311,29 @@ public class Game extends JPanel implements MouseListener {
 		} else if(level == 7) {
 			board = new int[][]
 					{
+				{0,0,4,0,0},
+				{0,0,0,0,0},
+				{0,4,0,0,0},
+				{0,0,0,0,0},
+				{4,4,4,0,0}
+					};
+		} else if(level == 8) {
+			board = new int[][]
+					{
 				{0,0,4,4,4},
 				{0,0,0,0,0},
 				{0,0,0,0,0},
 				{0,0,0,0,0},
 				{4,4,0,0,0}
+					};
+		} else if(level == 9) {
+			board = new int[][]
+					{
+				{0,0,0,4,4},
+				{0,4,0,4,4},
+				{0,4,0,0,0},
+				{0,4,0,0,0},
+				{0,0,0,0,0}
 					};
 		} else if(level > numLevels){
 			board = new int[0][0];
@@ -306,7 +341,7 @@ public class Game extends JPanel implements MouseListener {
 			board = new int[][]
 					{
 				{0,0,0,0,0},
-				{0,0,0 ,0,0},
+				{0,0,0,0,0},
 				{0,0,0,0,0},
 				{0,0,0,0,0},
 				{0,0,0,0,0}
@@ -319,94 +354,110 @@ public class Game extends JPanel implements MouseListener {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		Point click = new Point(e.getX()/50, e.getY()/50);
-		int x = click.x;
-		int y = click.y;
+		if(!settingsMenu && !levelSelect) {
+			Point click = new Point(e.getX()/50, e.getY()/50);
+			int x = click.x;
+			int y = click.y;
 
-		if(click.x > 4) {
-			if(click.y < 1) {
-				System.out.println("restart!");
-				//Restart the level
-				level--;
-				score--;
-				score -= level;
-				nextLevel();
-				if(score < 0) {
-					score = 0;
-				}
-			} else if(click.y >= 1 && click.y < 2) {
-				//Skip the level
-				System.out.println("skip!");
-				score--;
-				score -= level;
-				nextLevel();
-			} else if(click.y  == 2) {
-				if(fastFoward == false) {
-					ff = new ImageIcon("highlighted_fastFoward.png");
-					fastFoward = true;
-				} else {
-					ff = new ImageIcon("fastfoward.png");
-					fastFoward = false;
-					
-				}
-				ff.setImage(ff.getImage().getScaledInstance((int) 50, 50, Image.SCALE_DEFAULT));
-			}
-			repaint();
-			return;
-		}
-
-		int boardClick = board[click.x][click.y];
-		if(start == null) {
-			System.out.println("Setting start location");
-			setCurrentLocation(click.x, click.y);
-			start = click;
-
-			repaint();
-		} else if(boardClick == 2) {
-			drawLine(click.x, click.y);
-
-
-
-			boolean full = true;
-			for(int i = 0; i < board.length; i++) {
-				for(int j = 0; j < board[i].length; j++) {
-					if(board[i][j] == 0 || board[i][j] == 2) {
-						full = false;
+			if(click.x > 4) {
+				if(click.y < 1) {
+					System.out.println("restart!");
+					//Restart the level
+					level--;
+					score--;
+					score -= level;
+					nextLevel();
+					if(score < 0) {
+						score = 0;
 					}
+				} else if(click.y >= 1 && click.y < 2) {
+					//Skip the level
+					System.out.println("skip!");
+					score-= 2;
+					
+					score -= level;
+					nextLevel();
+					if(score < 0) {
+						score = 0;
+					}
+				} else if(click.y  == 2) {
+					if(fastFoward == false) {
+						ff = new ImageIcon("highlighted_fastFoward.png");
+						fastFoward = true;
+					} else {
+						ff = new ImageIcon("fastfoward.png");
+						fastFoward = false;
+
+					}
+					ff.setImage(ff.getImage().getScaledInstance((int) 50, 50, Image.SCALE_DEFAULT));
+				} else if(click.y == 4) {
+					settingsMenu = true;
 				}
+				repaint();
+				return;
 			}
-			if(full) {
-				System.out.println("Going to the next level");
-				nextLevel();
-			}
-			Point p = new Point();
-			if(fastFoward) {
-				int num = 0;
+
+			int boardClick = board[click.x][click.y];
+			if(start == null) {
+				System.out.println("Setting start location");
+				setCurrentLocation(click.x, click.y);
+				start = click;
+
+				repaint();
+			} else if(boardClick == 2) {
+				drawLine(click.x, click.y);
 
 
+
+				boolean full = true;
 				for(int i = 0; i < board.length; i++) {
 					for(int j = 0; j < board[i].length; j++) {
-						if(board[i][j] == 2) {
-							num++;
-							p = new Point(i, j);
+						if(board[i][j] == 0 || board[i][j] == 2) {
+							full = false;
 						}
 					}
 				}
+				if(full) {
+					System.out.println("Going to the next level");
+					nextLevel();
+				}
+				Point p = new Point();
+				if(fastFoward) {
+					int num = 0;
 
-				if(num == 1) {
-					System.out.println("Only one option");
-					try {
-						Thread.sleep(400);
-					} catch (InterruptedException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+
+					for(int i = 0; i < board.length; i++) {
+						for(int j = 0; j < board[i].length; j++) {
+							if(board[i][j] == 2) {
+								num++;
+								p = new Point(i, j);
+							}
+						}
 					}
-					//repaint();
-					EventQueue.invokeLater(new MERunnable(this, p));
+
+					if(num == 1) {
+						System.out.println("Only one option");
+						try {
+							Thread.sleep(400);
+						} catch (InterruptedException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						//repaint();
+						EventQueue.invokeLater(new MERunnable(this, p));
+					}
 				}
 			}
+			//årepaint();
+		} else if(settingsMenu) {
+			System.out.println("Mouse pressed in settings menu");
+			Point click = new Point(e.getX()/50, e.getY()/50);
+			if(click.x == 0 && click.y == 0) {
+				System.out.println("Leaving settings");
+				settingsMenu = false;
+				repaint();
+			}
 		}
-		//årepaint();
 	}
 
 	class MERunnable implements Runnable {
