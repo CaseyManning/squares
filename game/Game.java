@@ -212,6 +212,10 @@ public class Game extends JPanel implements MouseListener {
 				}
 			}
 			
+			((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+			g.drawImage(background.getImage(), 0, 0, this);
+			((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.999999f));
+			
 			g.setColor(Color.BLACK);
 			g.drawString(Integer.toString(score), 255, 170);
 
@@ -232,8 +236,7 @@ public class Game extends JPanel implements MouseListener {
 			g.drawImage(background.getImage(), 0, 0, this);
 			g.drawImage(back.getImage(), 0, 0, this);
 		}
-		((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
-		g.drawImage(background.getImage(), 0, 0, this);
+		
 	}
 
 
