@@ -1,17 +1,24 @@
 package game;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -26,6 +33,9 @@ public class Game extends JPanel implements MouseListener {
 	int score = 0;
 	int boardLength = 5;
 	boolean fastFoward = false;
+	ArrayList<String> achievements = new ArrayList<String>();
+	boolean lvl1start = false;
+	JPanel boardPanel = new JPanel();
 
 	int numLevels = 7;
 
@@ -35,7 +45,11 @@ public class Game extends JPanel implements MouseListener {
 	ImageIcon ff = new ImageIcon("fastfoward.png");
 	ImageIcon settings;
 	ImageIcon back = new ImageIcon("back.png");
-
+	ImageIcon fade = new ImageIcon("white_square.png");
+	
+	float opacity = 0.02f;
+	boolean up = true;
+	
 	boolean levelSelect = false;
 	boolean settingsMenu = false;
 
@@ -99,6 +113,7 @@ public class Game extends JPanel implements MouseListener {
 
 		System.out.println(tiles.get(0));
 
+		add(boardPanel);
 		frame.add(this);
 		frame.setSize(310, 275);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -108,7 +123,7 @@ public class Game extends JPanel implements MouseListener {
 		this.requestFocus();
 		System.out.println(board[0][0]);
 		repaint();
-
+		
 		addMouseListener(this);
 		KeyListener listener = new KeyListener() {
 			@Override
@@ -193,9 +208,10 @@ public class Game extends JPanel implements MouseListener {
 			g.drawImage(background.getImage(), 0, 0, this);
 			for(int i = 0; i < board.length; i++) {
 				for(int j = 0; j < board[i].length; j++) {
-					g.drawImage(tiles.get(board[i][j]).getImage(), i*50, j*50, this);
+					g.drawImage(tiles.get(board[i][j]).getImage(), i*50, j*50, boardPanel);
 				}
 			}
+			
 			g.setColor(Color.BLACK);
 			g.drawString(Integer.toString(score), 255, 170);
 
@@ -216,6 +232,8 @@ public class Game extends JPanel implements MouseListener {
 			g.drawImage(background.getImage(), 0, 0, this);
 			g.drawImage(back.getImage(), 0, 0, this);
 		}
+		((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+		g.drawImage(background.getImage(), 0, 0, this);
 	}
 
 
@@ -335,6 +353,15 @@ public class Game extends JPanel implements MouseListener {
 				{0,4,0,0,0},
 				{0,0,0,0,0}
 					};
+		} else if(level == 10) {
+			board = new int[][]
+					{
+				{0,0,0,0,0},
+				{0,0,0,4,0},
+				{0,4,0,4,0},
+				{0,4,0,0,0},
+				{0,0,0,4,4}
+					};
 		} else if(level > numLevels){
 			board = new int[0][0];
 		} else {
@@ -398,7 +425,7 @@ public class Game extends JPanel implements MouseListener {
 			}
 
 			int boardClick = board[click.x][click.y];
-			if(start == null) {
+			if(start == null && boardClick == 0) {
 				System.out.println("Setting start location");
 				setCurrentLocation(click.x, click.y);
 				start = click;
@@ -419,7 +446,9 @@ public class Game extends JPanel implements MouseListener {
 				}
 				if(full) {
 					System.out.println("Going to the next level");
-					nextLevel();
+					huh();
+					//nextLevel();
+					
 				}
 				Point p = new Point();
 				if(fastFoward) {
@@ -459,6 +488,11 @@ public class Game extends JPanel implements MouseListener {
 			}
 		}
 	}
+	
+	public void huh() {
+		EventQueue.invokeLater(new FadeRunnable(this));
+		repaint();
+	}
 
 	class MERunnable implements Runnable {
 		private Game g;
@@ -469,6 +503,39 @@ public class Game extends JPanel implements MouseListener {
 		}
 		public void run() {
 			g.mousePressed(new MouseEvent(g, 2, 2l, 0, p.x*50, p.y*50, 0, 0, 0, false, 0));
+		}
+	}
+	
+	class FadeRunnable implements Runnable {
+		private Game g;
+		private Point p;
+		public FadeRunnable(Game g) {
+			this.g = g;
+		}
+		public void run() {
+			System.out.println(opacity);
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if(up) {
+				opacity+= 0.01;
+				
+			} else {
+				opacity-= 0.01;
+			}
+			if(opacity >= 0.98) {
+				up = false;
+				nextLevel();
+			}
+			if(opacity > 0.02) {
+				huh();
+			} else {
+				up = true;
+				
+			}
+			
 		}
 	}
 
