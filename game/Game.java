@@ -32,26 +32,32 @@ public class Game extends JPanel implements MouseListener {
 	int level = 1;
 	int score = 0;
 	int boardLength = 5;
-	boolean fastFoward = false;
+	boolean fastFoward = true;
 	ArrayList<String> achievements = new ArrayList<String>();
 	boolean lvl1start = false;
 	JPanel boardPanel = new JPanel();
+	int boardOffset = 0;
 
 	int numLevels = 7;
 
 	ImageIcon restart;
 	ImageIcon skip;
 	ImageIcon background = new ImageIcon("background.jpg");
-	ImageIcon ff = new ImageIcon("fastfoward.png");
+	ImageIcon ff = new ImageIcon("highlighted_fastFoward.png");
 	ImageIcon settings;
 	ImageIcon back = new ImageIcon("back.png");
 	ImageIcon fade = new ImageIcon("white_square.png");
-	
+	ImageIcon help = new ImageIcon("help.png");
+
 	float opacity = 0.02f;
+	float Ropacity = 0.0999999f;
 	boolean up = true;
-	
+	boolean rup = true;
+	boolean go = true;
+
 	boolean levelSelect = false;
 	boolean settingsMenu = false;
+	boolean helpMenu = false;
 
 	public static void main(String[] args) {
 		Game g = new Game();
@@ -106,9 +112,11 @@ public class Game extends JPanel implements MouseListener {
 
 		ff.setImage(ff.getImage().getScaledInstance((int) 50, 50, Image.SCALE_DEFAULT));
 
+		help.setImage(help.getImage().getScaledInstance((int) 50, 50, Image.SCALE_DEFAULT));
+
 		settings = new ImageIcon("settings.png");
 		settings.setImage(settings.getImage().getScaledInstance(50, 50, Image.SCALE_DEFAULT));
-		
+
 		back.setImage(back.getImage().getScaledInstance(50, 50, Image.SCALE_DEFAULT));
 
 		System.out.println(tiles.get(0));
@@ -123,7 +131,7 @@ public class Game extends JPanel implements MouseListener {
 		this.requestFocus();
 		System.out.println(board[0][0]);
 		repaint();
-		
+
 		addMouseListener(this);
 		KeyListener listener = new KeyListener() {
 			@Override
@@ -204,18 +212,21 @@ public class Game extends JPanel implements MouseListener {
 	@Override
 	public void paintComponent(Graphics g) {
 
-		if(!levelSelect && !settingsMenu) {
+		if(!levelSelect && !settingsMenu && !helpMenu) {
 			g.drawImage(background.getImage(), 0, 0, this);
 			for(int i = 0; i < board.length; i++) {
 				for(int j = 0; j < board[i].length; j++) {
-					g.drawImage(tiles.get(board[i][j]).getImage(), i*50, j*50, boardPanel);
+					//if(board[i][j] == 1 || board[i][j] == 2 || board[i][j] == 3)
+					//((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, Ropacity));
+					g.drawImage(tiles.get(board[i][j]).getImage(), i*50 - boardOffset, j*50, boardPanel);
+					//((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.999999f));
 				}
 			}
-			
+
 			((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
 			g.drawImage(background.getImage(), 0, 0, this);
 			((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.999999f));
-			
+
 			g.setColor(Color.BLACK);
 			g.drawString(Integer.toString(score), 255, 170);
 
@@ -223,20 +234,33 @@ public class Game extends JPanel implements MouseListener {
 			g.drawImage(skip.getImage(), 250, 52, this);
 			g.drawImage(ff.getImage(), 250, 104, this);
 			g.drawImage(settings.getImage(), 250, 206, this);
+			g.drawImage(help.getImage(), 250, 156, this);
 		} else if(settingsMenu){
-			
+
 			g.drawImage(background.getImage(), 0, 0, this);
 			g.drawImage(back.getImage(), 0, 0, this);
-			
+
 		} else if(levelSelect){
 			for(int i = 0; i < numLevels - 1; i++) {
 
 			}
+		} else if(helpMenu) {
+
+			g.drawImage(background.getImage(), 0, 0, this);
+			g.drawImage(back.getImage(), 0, 0, this);
+			g.drawString("The goal is to fill up the whole board", 50, 50);
+			g.drawString("To start, click on an empy square to fill it", 40, 70);
+			g.drawString("Then click on one of the surrounding light", 40, 90);
+			g.drawString("green squares to extend green squares", 40, 100);
+			g.drawString("outwards in that direction", 40, 110);
+			g.drawString("Continue to do this until the board is full", 40, 130);
+			g.drawString("You may restart and skip the level using", 40, 150);
+			g.drawString("the buttons on the sidebar", 40, 160);
 		} else {
 			g.drawImage(background.getImage(), 0, 0, this);
 			g.drawImage(back.getImage(), 0, 0, this);
 		}
-		
+
 	}
 
 
@@ -350,8 +374,8 @@ public class Game extends JPanel implements MouseListener {
 		} else if(level == 9) {
 			board = new int[][]
 					{
-				{0,0,0,4,4},
-				{0,4,0,4,4},
+				{0,0,0,0,0},
+				{0,4,4,4,0},
 				{0,4,0,0,0},
 				{0,4,0,0,0},
 				{0,0,0,0,0}
@@ -363,7 +387,16 @@ public class Game extends JPanel implements MouseListener {
 				{0,0,0,4,0},
 				{0,4,0,4,0},
 				{0,4,0,0,0},
-				{0,0,0,4,4}
+				{0,0,0,0,0}
+					};
+		} else if(level == 11) {
+			board = new int[][]
+					{
+				{0,0,0,0,0},
+				{0,0,4,4,0},
+				{0,0,0,0,0},
+				{0,4,0,0,0},
+				{0,0,0,0,0}
 					};
 		} else if(level > numLevels){
 			board = new int[0][0];
@@ -384,7 +417,7 @@ public class Game extends JPanel implements MouseListener {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		if(!settingsMenu && !levelSelect) {
+		if(!settingsMenu && !levelSelect && !helpMenu) {
 			Point click = new Point(e.getX()/50, e.getY()/50);
 			int x = click.x;
 			int y = click.y;
@@ -396,17 +429,20 @@ public class Game extends JPanel implements MouseListener {
 					level--;
 					score--;
 					score -= level;
-					nextLevel();
+					//restart(1);
+					fade(0);
+
 					if(score < 0) {
 						score = 0;
 					}
-				} else if(click.y >= 1 && click.y < 2) {
+				} else if(click.y == 1) {
 					//Skip the level
 					System.out.println("skip!");
 					score-= 2;
-					
+
 					score -= level;
-					nextLevel();
+					//nextLevel();
+					skip(1);
 					if(score < 0) {
 						score = 0;
 					}
@@ -422,6 +458,9 @@ public class Game extends JPanel implements MouseListener {
 					ff.setImage(ff.getImage().getScaledInstance((int) 50, 50, Image.SCALE_DEFAULT));
 				} else if(click.y == 4) {
 					settingsMenu = true;
+				} else if(click.y == 3) {
+					//Help!
+					helpMenu = true;
 				}
 				repaint();
 				return;
@@ -449,9 +488,9 @@ public class Game extends JPanel implements MouseListener {
 				}
 				if(full) {
 					System.out.println("Going to the next level");
-					huh();
+					fade(10);
 					//nextLevel();
-					
+
 				}
 				Point p = new Point();
 				if(fastFoward) {
@@ -481,19 +520,39 @@ public class Game extends JPanel implements MouseListener {
 				}
 			}
 			//årepaint();
-		} else if(settingsMenu) {
+		} else if(settingsMenu || helpMenu) {
 			System.out.println("Mouse pressed in settings menu");
 			Point click = new Point(e.getX()/50, e.getY()/50);
 			if(click.x == 0 && click.y == 0) {
 				System.out.println("Leaving settings");
 				settingsMenu = false;
+				helpMenu = false;
+				repaint();
+			}
+		} else if(helpMenu) {
+			Point click = new Point(e.getX()/50, e.getY()/50);
+			if(click.x == 0 && click.y == 0) {
+				helpMenu = false;
 				repaint();
 			}
 		}
 	}
-	
-	public void huh() {
-		EventQueue.invokeLater(new FadeRunnable(this));
+
+	public void fade(int wait) {
+		//recursively lowers and then increases the opacity of the board
+		EventQueue.invokeLater(new FadeRunnable(this, wait));
+		repaint();
+	}
+
+	public void skip(int wait) {
+		//recursively lowers and then increases the opacity of the board
+		EventQueue.invokeLater(new SkipRunnable(this, wait));
+		repaint();
+	}
+
+	public void restart(int wait) {
+		//recursively lowers and then increases the opacity of the board
+		EventQueue.invokeLater(new RestartRunnable(this, wait));
 		repaint();
 	}
 
@@ -508,23 +567,25 @@ public class Game extends JPanel implements MouseListener {
 			g.mousePressed(new MouseEvent(g, 2, 2l, 0, p.x*50, p.y*50, 0, 0, 0, false, 0));
 		}
 	}
-	
+
 	class FadeRunnable implements Runnable {
 		private Game g;
 		private Point p;
-		public FadeRunnable(Game g) {
+		int wait;
+		public FadeRunnable(Game g, int wait) {
 			this.g = g;
+			this.wait = wait;
 		}
 		public void run() {
 			System.out.println(opacity);
 			try {
-				Thread.sleep(10);
+				Thread.sleep(wait);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			if(up) {
 				opacity+= 0.01;
-				
+
 			} else {
 				opacity-= 0.01;
 			}
@@ -533,12 +594,87 @@ public class Game extends JPanel implements MouseListener {
 				nextLevel();
 			}
 			if(opacity > 0.02) {
-				huh();
+				fade(wait);
 			} else {
 				up = true;
-				
+
 			}
-			
+
+		}
+	}
+
+	class RestartRunnable implements Runnable {
+		private Game g;
+		private Point p;
+		int wait;
+		public RestartRunnable(Game g, int wait) {
+			this.g = g;
+			this.wait = wait;
+		}
+		public void run() {
+			System.out.println("Ropacity is " + Ropacity + " and the Ropacity Restart Runnable is running");
+			try {
+				Thread.sleep(wait);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if(rup) {
+				Ropacity-= 0.01;
+
+			} else {
+				Ropacity+= 0.01;
+			}
+			if(Ropacity >= 0.98) {
+				rup = false;
+				nextLevel();
+			}
+			if(opacity > 0.02) {
+				fade(wait);
+			} else {
+				rup = true;
+
+			}
+
+		}
+	}
+
+	class SkipRunnable implements Runnable {
+		private Game g;
+		private Point p;
+		int wait;
+
+		public SkipRunnable(Game g, int wait) {
+			this.g = g;
+			this.wait = wait;
+		}
+		public void run() {
+			System.out.println(boardOffset);
+			try {
+				Thread.sleep(wait);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if(go) {
+				boardOffset++;
+			} else {
+				boardOffset++;
+			}
+			if(boardOffset >= 400) {
+				System.out.println("Setting to to false");
+				go = false;
+				nextLevel();
+				boardOffset = -400;
+			}
+			if(go == true) {
+				System.out.println("I am going");
+				skip(wait);
+			} else if(go == false && boardOffset < 0) {
+				System.out.println("I am going with no go");
+				skip(wait);
+			} else {
+				go = true;
+			}
+
 		}
 	}
 
