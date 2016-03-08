@@ -7,6 +7,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -24,24 +26,19 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 
-public class Game extends JPanel implements MouseListener {
+public class Game extends JPanel implements MouseListener, ActionListener {
 
 	int[][] board = new int[5][5];
 	Point start;
 	Point currentLocation = new Point();
 	HashMap<Integer, ImageIcon> tiles;
-	int level = 10;
-	int score = 0;
-	int boardLength = 5;
-	boolean fastFoward = true;
+	
 	ArrayList<String> achievements = new ArrayList<String>();
-	boolean lvl1start = false;
+	JPanel HSP = new JPanel();
 	JPanel boardPanel = new JPanel();
-	int boardOffset = 0;
-
-	int numLevels = 7;
-
+	
 	ImageIcon restart;
 	ImageIcon skip;
 	ImageIcon background = new ImageIcon("background.jpg");
@@ -50,17 +47,26 @@ public class Game extends JPanel implements MouseListener {
 	ImageIcon back = new ImageIcon("back.png");
 	ImageIcon fade = new ImageIcon("white_square.png");
 	ImageIcon help = new ImageIcon("help.png");
+	
+	JSlider boardSizeSlider = new JSlider(5, 10, 5);
 
+	int boardOffset = 0;
+	int numLevels = 7;
+	int level = 1;
+	int score = 0;
+	int boardLength = 5;
 	float opacity = 0.02f;
 	float Ropacity = 0.0999999f;
+	
 	boolean up = true;
 	boolean rup = true;
 	boolean go = true;
-
+	boolean lvl1start = false;
 	boolean levelSelect = false;
 	boolean settingsMenu = false;
 	boolean helpMenu = false;
 	boolean restarting = false;
+	boolean fastFoward = true;
 
 	public static void main(String[] args) {
 		Game g = new Game();
@@ -71,7 +77,7 @@ public class Game extends JPanel implements MouseListener {
 		this.setFocusable(true);
 		this.requestFocus();
 		JFrame frame = new JFrame();
-
+		add(HSP);
 		tiles = new HashMap<Integer, ImageIcon>();
 		ImageIcon g = new ImageIcon("gray_box.png");
 		g.setImage(g.getImage().getScaledInstance((int) 50, 50, Image.SCALE_DEFAULT));
@@ -123,17 +129,20 @@ public class Game extends JPanel implements MouseListener {
 		back.setImage(back.getImage().getScaledInstance(50, 50, Image.SCALE_DEFAULT));
 
 		System.out.println(tiles.get(0));
-
+		HSP.setSize(500, 500);
 		add(boardPanel);
 		frame.add(this);
 		frame.setSize(310, 275);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
-		frame.setResizable(false);
+		//TODO e
+		frame.setResizable(true);
 		this.setFocusable(true);
 		this.requestFocus();
 		System.out.println(board[0][0]);
 		repaint();
+		 
+
 
 		addMouseListener(this);
 		KeyListener listener = new KeyListener() {
@@ -388,10 +397,10 @@ public class Game extends JPanel implements MouseListener {
 			board = new int[][]
 					{
 				{0,0,0,0,0},
-				{0,4,4,4,0},
-				{0,4,0,0,0},
-				{0,4,0,0,0},
-				{0,0,0,0,0}
+				{0,4,4,0,0},
+				{0,0,0,0,0},
+				{0,0,0,4,4},
+				{0,0,0,4,4}
 					};
 		} else if(level == 10) {
 			board = new int[][]
@@ -431,7 +440,7 @@ public class Game extends JPanel implements MouseListener {
 		start = null;
 		repaint();
 	}
-
+ 
 	private boolean hasToomanyReds() {
 		int redCount = 0;
 		for(int i = 0; i < board.length; i++) {
@@ -441,12 +450,12 @@ public class Game extends JPanel implements MouseListener {
 				}
 			}
 		}
-		return redCount > 8;
+		return redCount > boardLength*boardLength/4;
 	}
 
 	public void leve() {
 		boolean[][] level = randomLevel();
-		board = new int[5][5];
+		board = new int[boardLength][boardLength];
 		for(int i = 0; i < level.length; i++) {
 			for(int j = 0; j < level[i].length; j++) {
 				if(!level[i][j]) {
@@ -463,7 +472,7 @@ public class Game extends JPanel implements MouseListener {
 			int x = click.x;
 			int y = click.y;
 
-			if(click.x > 4) {
+			if(click.x > boardLength - 1) {
 				if(click.y < 1) {
 					System.out.println("restart!");
 					//Restart the level
@@ -497,6 +506,7 @@ public class Game extends JPanel implements MouseListener {
 					ff.setImage(ff.getImage().getScaledInstance((int) 50, 50, Image.SCALE_DEFAULT));
 				} else if(click.y == 4) {
 					settingsMenu = true;
+					HSP.add(boardSizeSlider);
 				} else if(click.y == 3) {
 					//Help!
 					helpMenu = true;
@@ -559,11 +569,12 @@ public class Game extends JPanel implements MouseListener {
 				}
 			}
 			//årepaint();
-		} else if(settingsMenu || helpMenu) {
+		} else if(settingsMenu) {
 			System.out.println("Mouse pressed in settings menu");
 			Point click = new Point(e.getX()/50, e.getY()/50);
 			if(click.x == 0 && click.y == 0) {
 				System.out.println("Leaving settings");
+				HSP.remove(boardSizeSlider);
 				settingsMenu = false;
 				helpMenu = false;
 				repaint();
@@ -779,118 +790,9 @@ public class Game extends JPanel implements MouseListener {
 		return true;
 	}
 
-	Random r = new Random();
-	int startx = r.nextInt(5);
-	int starty = r.nextInt(5);
-	ArrayList<Point> visited = new ArrayList<Point>();
-	Point current = new Point(startx, starty);
-
-	public int[][] getNewLevel() {
-		int[][] ret = new int[5][5];
-
-		boolean done = false;
-
-		visited.add(new Point(-1, 0));
-		visited.add(new Point(-1, 1));
-		visited.add(new Point(-1, 2));
-		visited.add(new Point(-1, 3));
-		visited.add(new Point(-1, 4));
-		visited.add(new Point(0, -1));
-		visited.add(new Point(1, -1));
-		visited.add(new Point(2, -1));
-		visited.add(new Point(3, -1));
-		visited.add(new Point(4, -1));
-		visited.add(new Point(5, 0));
-		visited.add(new Point(5, 1));
-		visited.add(new Point(5, 2));
-		visited.add(new Point(5, 3));
-		visited.add(new Point(5, 4));
-		visited.add(new Point(0, 5));
-		visited.add(new Point(1, 5));
-		visited.add(new Point(2, 5));
-		visited.add(new Point(3, 5));
-		visited.add(new Point(4, 5));
-
-		while(!done) {
-			visited.add(current);
-			shnack();
-			//if(current.x) {
-			//	break; 
-			//}
-		}
-
-
-		return ret;
-	}
-
-	public boolean shnack() {
-		int d = r.nextInt(4);
-		int length = r.nextInt(4);
-		int check = visited.size();
-		if(d == 1) {
-
-			if(visited.contains(new Point(current.x - 1, current.y))) {
-				return true;
-			}
-
-			for(int i = 0; i < length; i++) {
-				if(!visited.contains(new Point(current.x + 1, current.y))) {
-					visited.add(new Point(current.x + 1, current.y));
-					current = new Point(current.x + 1, current.y);
-				} else {
-					break;
-				}
-			}
-		} else if(d == 2) {
-
-			if(visited.contains(new Point(current.x + 1, current.y))) {
-				return true;
-			}
-
-			for(int i = 0; i < length; i++) {
-				if(!visited.contains(new Point(current.x - 1, current.y))) {
-					visited.add(new Point(current.x - 1, current.y));
-					current = new Point(current.x - 1, current.y);
-				} else {
-					break;
-				}
-			}
-		} else if(d == 3) {
-
-			if(visited.contains(new Point(current.x, current.y - 1))) {
-				return true;
-			}
-
-			for(int i = 0; i < length; i++) {
-				if(!visited.contains(new Point(current.x, current.y + 1))) {
-					visited.add(new Point(current.x, current.y + 1));
-					current = new Point(current.x, current.y + 1);
-				} else {
-					break;
-				}
-			}
-		} else if(d == 4) {
-
-			if(visited.contains(new Point(current.x, current.y + 1))) {
-				return true;
-			}
-
-			for(int i = 0; i < length; i++) {
-				if(!visited.contains(new Point(current.x, current.y - 1))) {
-					visited.add(new Point(current.x, current.y - 1));
-					current = new Point(current.x, current.y - 1);
-				} else {
-					break;
-				}
-			}
-		}
-		return true;
-	}
-
-
 	public boolean[][] randomLevel() {
-		boolean[][] filled = new boolean[5][5];
-		Point current = new Point((int)(Math.random() * 5), (int)(Math.random() * 5));
+		boolean[][] filled = new boolean[boardLength][boardLength];
+		Point current = new Point((int)(Math.random() * boardLength), (int)(Math.random() * boardLength));
 		Point past = getRandomAdjacent(current);
 		while(true){
 			if(isValid(current)){
@@ -924,7 +826,6 @@ public class Game extends JPanel implements MouseListener {
 				if(possible.isEmpty()){
 					break;
 				}
-				System.out.println("Current is " + current + "  aand past is " + past);
 				past = current;
 				current = random(possible);
 
@@ -953,7 +854,7 @@ public class Game extends JPanel implements MouseListener {
 	}
 
 	private boolean isValid(Point p) {
-		return p.x >= 0 && p.x < 5 && p.y >= 0 && p.y < 5;
+		return p.x >= 0 && p.x < boardLength && p.y >= 0 && p.y < boardLength;
 	}
 
 	private Point getRandomAdjacent(Point current) {
@@ -968,6 +869,14 @@ public class Game extends JPanel implements MouseListener {
 
 	private int random(int... options){
 		return options[(int)(Math.random() * options.length)];
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if(e.getSource().equals(boardSizeSlider)) {
+			boardLength = boardSizeSlider.getValue();
+		}
+		
 	}
 
 }
